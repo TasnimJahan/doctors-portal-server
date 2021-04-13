@@ -3,11 +3,16 @@ const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
+const fileUpload =require('express-fileUpload');
 const { ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(bodyParser.json());
+
+app.use(express.static('doctors')); //doctors folder e rakhbo tai ekhane doctors likhechi
+app.use(fileUpload());
+
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
@@ -34,6 +39,19 @@ client.connect(err => {
 
 
 
+//shob golo patients er details dekhar jnno
+  app.get('/appointments', (req, res) => {
+    appointmentCollection.find({})
+        .toArray((err, documents) => {
+            res.send(documents);
+        })
+})
+
+
+
+
+
+
   //date omujai appointement show korar post deoa
   app.post('/appointmentsByDate', (req,res)=> {
     const date = req.body;
@@ -42,11 +60,36 @@ client.connect(err => {
     .toArray((err,documents) =>{
       res.send(documents);
     })
-    // .then(result =>{
-    //   res.send(result.insertedCount>0)
-    // })
   })
 
+
+
+
+  //doctors er pic uploade
+  app.post('/addADoctor',(req, res) =>{
+    const file = req.files.file;
+    const name = req.body.name;
+    const email = req.body.email;
+    console.log(name,email,file);
+    file.mv(`${__dirname}/doctors/${file.name}`,err =>{
+      if(err){
+        console.log(err);
+        return res.status(500).send({message:'Failed to upload image'});
+      }
+      return res.send({name:file.name,path:`/${file.name}`})
+    })
+  })
+
+
+
+
+  // j j doctor golo ache tader list eith name and pic show kora 
+  app.get('/doctors', (req, res) => {
+    doctorCollection.find({})
+        .toArray((err, documents) => {
+            res.send(documents);
+        })
+});
 
 
 
