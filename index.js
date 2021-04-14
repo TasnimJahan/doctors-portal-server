@@ -4,7 +4,7 @@ const cors = require('cors');
 const fs = require('fs-extra');
 const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
-const fileUpload =require('express-fileUpload');
+// const fileUpload =require('express-fileUpload');
 const { ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
@@ -12,7 +12,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.use(express.static('doctors')); //doctors folder e rakhbo tai ekhane doctors likhechi
-app.use(fileUpload());
+// app.use(fileUpload());
 
 
 app.get('/', (req, res) => {
