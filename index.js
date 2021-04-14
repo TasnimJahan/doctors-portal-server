@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express();
 const cors = require('cors');
+const fs = require('fs-extra');
 const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
 const fileUpload =require('express-fileUpload');
@@ -53,14 +54,27 @@ client.connect(err => {
 
 
 
-  //date omujai appointement show korar post deoa
+  //date omujai appointement show korar post deoa & id dr na hy se shb dekhte parbena . je tarikhe se koreche oi tarikhe click korle only nijer ta dekhbe
   app.post('/appointmentsByDate', (req,res)=> {
     const date = req.body;
+    const email = req.body.email;
     console.log("date", date.date);
-    appointmentCollection.find({date:date.date})
-    .toArray((err,documents) =>{
-      res.send(documents);
+
+
+    doctorCollection.find({email:email})
+    .toArray((err,doctors) =>{
+      const filter = {date:date.date}
+      if(doctors.length===0){
+        filter.email=email;
+      }
+
+        appointmentCollection.find(filter)
+        .toArray((err,documents) =>{
+        res.send(documents);
+        })
+      
     })
+    
   })
 
 
@@ -72,33 +86,41 @@ client.connect(err => {
     const name = req.body.name;
     const email = req.body.email;
     console.log(name,email,file);
+    const filePath = `${__dirname}/doctors/${file.name}`;
 
-    const newImg = file.data;
-    const encImg = newImg.toString('base64');
-
-    var image = {
-      contentType: file.mimetype,
-      size: file.size,
-      img: Buffer.from(encImg, 'base64')
-  };
-
-  doctorCollection.insertOne({ name, email, file })
-      .then(result => {
-          res.send(result.insertedCount > 0);
-      })
-      
-
-      //extra
-    file.mv(`${__dirname}/doctors/${file.name}`,err =>{
+    file.mv(filePath,err =>{
       if(err){
         console.log(err);
         return res.status(500).send({message:'Failed to upload image'});
       }
-      return res.send({name:file.name,path:`/${file.name}`})
-    })
+      var newImg = fs.readFileSync(filePath);
+      const encodedImg = newImg.toString('base64');
 
+      var image = {
+        contentType: req.files.file.mimetype,
+        size: req.files.file.size,
+        img: Buffer(encImg, 'base64')
+    };
+
+
+      doctorCollection.insertOne({name,email,image})
+      .then(result =>{
+        fs.remove(filePath,error =>{
+          if(error){
+            console.log(error);
+            res.status(500).send({message:'Failed to upload image'});
+          }
+          res.send(result.insertedCount > 0)
+        })     
+      })
+      // return res.send({name:file.name,path:`/${file.name}`})
+    })
   })
 
+
+
+
+  
 
 
 
@@ -114,8 +136,31 @@ client.connect(err => {
 
 
 
+//ei user ki dr or not ta dekhar jnno
+app.post('/isDoctor', (req,res)=> {
+  const email = req.body.email;
+  console.log("date", date.date);
+
+
+  doctorCollection.find({email:email})
+  .toArray((err,doctors) =>{
+    res.send(doctors.length>0);
+
+    // const filter = {date:date.date}
+    // if(doctors.length===0){
+    //   filter.email=email;
+    // }
+      // appointmentCollection.find(filter)
+      // .toArray((err,documents) =>{
+      // res.send(documents);
+      // })
+  })
+})
+
+
+
   // client.close();
-});
+})
 
 
 
