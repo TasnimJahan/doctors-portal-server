@@ -25,6 +25,7 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 client.connect(err => {
   const appointmentCollection = client.db(`${process.env.DB_NAME}`).collection("appointment");
+  const doctorCollection = client.db(`${process.env.DB_NAME}`).collection("doctors");
 
 
   //add apoinment er popup e ja valuedibo. name,age,weight etc eshob joma hobe.
@@ -71,6 +72,23 @@ client.connect(err => {
     const name = req.body.name;
     const email = req.body.email;
     console.log(name,email,file);
+
+    const newImg = file.data;
+    const encImg = newImg.toString('base64');
+
+    var image = {
+      contentType: file.mimetype,
+      size: file.size,
+      img: Buffer.from(encImg, 'base64')
+  };
+
+  doctorCollection.insertOne({ name, email, file })
+      .then(result => {
+          res.send(result.insertedCount > 0);
+      })
+      
+
+      //extra
     file.mv(`${__dirname}/doctors/${file.name}`,err =>{
       if(err){
         console.log(err);
@@ -78,6 +96,7 @@ client.connect(err => {
       }
       return res.send({name:file.name,path:`/${file.name}`})
     })
+
   })
 
 
