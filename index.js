@@ -31,6 +31,8 @@ client.connect(err => {
   const postCollection = client.db(`${process.env.DB_NAME}`).collection("posts");
   const cCollection = client.db(`${process.env.DB_NAME}`).collection("comments");
 
+  const reviewCollection = client.db(`${process.env.DB_NAME}`).collection("doctorsReview");
+
 
   //add apoinment er popup e ja valuedibo. name,age,weight etc eshob joma hobe.
   app.post('/addAppointment', (req,res)=> {
@@ -228,6 +230,25 @@ app.get('/comments/:key', (req, res) => {
           console.log(documents);
       })
     })
+
+
+
+    
+app.post("/addReview",(req, res) => {
+  const newInfo = req.body;
+  reviewCollection.insertOne(newInfo)
+  .then(result => {
+      res.send(result.insertedCount > 0)
+  })
+})
+
+app.get('/reviews', (req, res) => {
+  reviewCollection.find({})
+      .toArray((err, documents) => {
+          res.send(documents);
+      })
+});
+
 
 
 
