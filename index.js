@@ -4,7 +4,7 @@ const cors = require('cors');
 const fs = require('fs-extra');
 const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
-// const fileUpload =require('express-fileUpload');
+const fileUpload =require('express-fileUpload');
 const { ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
@@ -12,11 +12,11 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.use(express.static('doctors')); //doctors folder e rakhbo tai ekhane doctors likhechi
-// app.use(fileUpload());
+app.use(fileUpload());
 
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  res.send('Hello doctorss!')
 })
 
 
@@ -27,6 +27,9 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 client.connect(err => {
   const appointmentCollection = client.db(`${process.env.DB_NAME}`).collection("appointment");
   const doctorCollection = client.db(`${process.env.DB_NAME}`).collection("doctors");
+
+  const postCollection = client.db(`${process.env.DB_NAME}`).collection("posts");
+  const cCollection = client.db(`${process.env.DB_NAME}`).collection("comments");
 
 
   //add apoinment er popup e ja valuedibo. name,age,weight etc eshob joma hobe.
@@ -103,44 +106,52 @@ client.connect(err => {
 
 
 
-  // doctors er pic upload
-  app.post('/addADoctor',(req, res) =>{
-    const file = req.files.file;
-    const name = req.body.name;
-    const email = req.body.email;
-    console.log(name,email,file);
-    // const filePath = `${__dirname}/doctors/${file.name}`;
+  // // doctors er pic upload
+  // app.post('/addADoctor',(req, res) =>{
+  //   const file = req.files.file;
+  //   const name = req.body.name;
+  //   const email = req.body.email;
+  //   console.log(name,email,file);
+  //   // const filePath = `${__dirname}/doctors/${file.name}`;
 
-    // file.mv(filePath,err =>{
-    //   if(err){
-    //     console.log(err);
-    //     return res.status(500).send({message:'Failed to upload image'});
-    //   }
-      // var newImg = fs.readFileSync(filePath);
-      var newImg = file.data;
-      const encodedImg = newImg.toString('base64');
+  //   // file.mv(filePath,err =>{
+  //   //   if(err){
+  //   //     console.log(err);
+  //   //     return res.status(500).send({message:'Failed to upload image'});
+  //   //   }
+  //     // var newImg = fs.readFileSync(filePath);
+  //     var newImg = file.data;
+  //     const encodedImg = newImg.toString('base64');
 
-      var image = {
-        contentType: file.mimetype,
-        size: file.size,
-        img: Buffer.from(encodedImg, 'base64')
-    };
+  //     var image = {
+  //       contentType: file.mimetype,
+  //       size: file.size,
+  //       img: Buffer.from(encodedImg, 'base64')
+  //   };
 
-      doctorCollection.insertOne({name,email,image})
-      .then(result =>{
-        // fs.remove(filePath,error =>{
-        //   if(error){
-        //     console.log(error);
-        //     res.status(500).send({message:'Failed to upload image'});
-        //   }
-          res.send(result.insertedCount > 0)
-        // })     
-      })
-      // return res.send({name:file.name,path:`/${file.name}`})
-    // })
+  //     doctorCollection.insertOne({name,email})
+  //     .then(result =>{
+  //       // fs.remove(filePath,error =>{
+  //       //   if(error){
+  //       //     console.log(error);
+  //       //     res.status(500).send({message:'Failed to upload image'});
+  //       //   }
+  //         res.send(result.insertedCount > 0)
+  //       // })     
+  //     })
+  //     // return res.send({name:file.name,path:`/${file.name}`})
+  //   // })
+  // })
+
+
+  
+app.post("/addADoctor",(req, res) => {
+  const newInfo = req.body;
+  doctorCollection.insertOne(newInfo)
+  .then(result => {
+      res.send(result.insertedCount > 0)
   })
-
-
+})
 
 
   
@@ -156,6 +167,14 @@ client.connect(err => {
 });
 
 
+app.get('/doctors/:id', (req, res) => {
+  const id = ObjectId(req.params.id);
+  doctorCollection.find(id)
+  .toArray((err,items) => {
+    res.send(items);
+  })
+})
+
 
 
 
@@ -168,6 +187,65 @@ app.post('/isDoctor', (req,res)=> {
   })
 
 })
+
+
+
+
+
+
+
+
+//post and comments
+
+app.post('/addposts', (req,res)=> {
+  const newPost = req.body;
+  console.log("newPost: " + newPost);
+  postCollection.insertOne(newPost)
+  .then(result =>{
+    res.send(result.insertedCount>0)
+  })
+})
+app.get('/posts', (req, res) => {
+  postCollection.find({}).sort({_id:-1}) 
+      .toArray((err, documents) => {
+          res.send(documents);
+          console.log(documents);
+      })
+})
+
+app.post('/addcomments', (req,res)=> {
+  const newC = req.body;
+  console.log("newComment: " + newC);
+  cCollection.insertOne(newC)
+  .then(result =>{
+    res.send(result.insertedCount>0)
+  })
+})
+app.get('/comments/:key', (req, res) => {
+  cCollection.find({pid:req.params.key})
+      .toArray((err, documents) => {
+          res.send(documents);
+          console.log(documents);
+      })
+    })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
