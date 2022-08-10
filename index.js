@@ -12,7 +12,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.use(express.static('doctors')); //doctors folder e rakhbo tai ekhane doctors likhechi
-app.use(fileUpload());
+// app.use(fileUpload());
 
 
 app.get('/', (req, res) => {
