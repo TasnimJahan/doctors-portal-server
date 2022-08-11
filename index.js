@@ -147,6 +147,18 @@ client.connect(err => {
 
 
   
+
+  
+  
+app.post("/addPrescription",(req, res) => {
+  const newInfo = req.body;
+  doctorCollection.insertOne(newInfo)
+  .then(result => {
+      res.send(result.insertedCount > 0)
+  })
+})
+
+
 app.post("/addADoctor",(req, res) => {
   const newInfo = req.body;
   doctorCollection.insertOne(newInfo)
@@ -236,7 +248,8 @@ app.get('/comments/:key', (req, res) => {
     
 app.post("/addReview",(req, res) => {
   const newInfo = req.body;
-  reviewCollection.insertOne(newInfo)
+  reviewCollection
+  .insertOne(newInfo)
   .then(result => {
       res.send(result.insertedCount > 0)
   })
