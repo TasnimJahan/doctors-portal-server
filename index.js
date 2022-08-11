@@ -32,6 +32,7 @@ client.connect(err => {
   const cCollection = client.db(`${process.env.DB_NAME}`).collection("comments");
 
   const reviewCollection = client.db(`${process.env.DB_NAME}`).collection("doctorsReview");
+  const prescriptionCollection = client.db(`${process.env.DB_NAME}`).collection("prescriptionAdd");
 
 
   //add apoinment er popup e ja valuedibo. name,age,weight etc eshob joma hobe.
@@ -152,7 +153,7 @@ client.connect(err => {
   
 app.post("/addPrescription",(req, res) => {
   const newInfo = req.body;
-  doctorCollection.insertOne(newInfo)
+  prescriptionCollection.insertOne(newInfo)
   .then(result => {
       res.send(result.insertedCount > 0)
   })
